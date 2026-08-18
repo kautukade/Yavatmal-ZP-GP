@@ -1,0 +1,65 @@
+"use client";
+
+import {
+  LayoutDashboard,
+  ListChecks,
+  FileCheck2,
+  Wrench,
+  CloudRain,
+  Clock,
+  Users,
+  Building2,
+  HeartHandshake,
+  GitMerge,
+  Lightbulb,
+  Eye,
+  BarChart3,
+  Bell,
+  History,
+  ShieldCheck,
+  Settings,
+  FileStack,
+  Megaphone,
+  IndianRupee,
+  FlaskConical,
+  Map,
+  Network,
+  Boxes,
+  Activity,
+  ServerCog,
+  LucideProps,
+} from "lucide-react";
+
+const MAP: Record<string, React.ComponentType<LucideProps>> = {
+  LayoutDashboard,
+  ListChecks,
+  FileCheck2,
+  Wrench,
+  CloudRain,
+  Clock,
+  Users,
+  Building2,
+  HeartHandshake,
+  GitMerge,
+  Lightbulb,
+  Eye,
+  BarChart3,
+  Bell,
+  History,
+  ShieldCheck,
+  Settings,
+  FileStack,
+  Megaphone,
+  IndianRupee,
+  FlaskConical,
+  Map,
+  Network,
+  Boxes,
+  Activity,
+  ServerCog,
+};
+
+export function Icon({ name, ...props }: { name: string } & LucideProps) {
+  const Cmp = MAP[name] ?? LayoutDashboard;
+  return <Cmp {...props} />;
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Yavatmal Unified Panchayat Operations Platform",
+  "short_name": "Yavatmal Panchayat",
+  "description": "Role-based digital operations, governance, maintenance, compliance and participation platform for Zilla Parishad Yavatmal. Demonstration prototype.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1f4e8f",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

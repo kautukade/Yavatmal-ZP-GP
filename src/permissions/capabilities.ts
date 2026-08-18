@@ -1,0 +1,284 @@
+// ============================================================================
+// Centralized capability model — Government Demo v2
+// Demo-level role-based access simulation with centralized permission
+// enforcement. NOT production-grade security.
+// ============================================================================
+
+import { RoleId, User } from "@/types";
+
+export type Capability =
+  // viewing
+  | "VIEW_PUBLIC_DATA"
+  | "VIEW_GP_OPERATIONS"
+  | "VIEW_BLOCK_OPERATIONS"
+  | "VIEW_DISTRICT_OPERATIONS"
+  // obligations
+  | "CREATE_OBLIGATION"
+  | "ASSIGN_OBLIGATION"
+  | "UPDATE_OWN_OBLIGATION"
+  | "REVIEW_OBLIGATION"
+  | "RETURN_OBLIGATION"
+  | "ESCALATE_OBLIGATION"
+  | "VERIFY_OBLIGATION"
+  | "CLOSE_OBLIGATION"
+  // assets / repairs
+  | "REPORT_ASSET_CONDITION"
+  | "CREATE_REPAIR_TICKET"
+  | "ASSIGN_REPAIR"
+  | "UPDATE_REPAIR"
+  | "CLAIM_REPAIR_COMPLETE"
+  | "VERIFY_REPAIR"
+  | "CLOSE_REPAIR"
+  // seasonal
+  | "SUBMIT_SEASONAL_CHECK"
+  | "REVIEW_SEASONAL_CHECK"
+  // services
+  | "CREATE_SERVICE_ENTRY"
+  | "UPDATE_SERVICE_ENTRY"
+  | "VIEW_SERVICE_AGGREGATES"
+  // gram sabha
+  | "CREATE_GRAMSABHA_FOLLOWUP"
+  | "REVIEW_GRAMSABHA_FOLLOWUP"
+  // participation
+  | "SUBMIT_PARTICIPATION"
+  | "VERIFY_PARTICIPATION"
+  // innovation
+  | "CREATE_INNOVATION_CHALLENGE"
+  | "SUBMIT_INNOVATION"
+  | "REVIEW_INNOVATION"
+  | "CREATE_FROM_TEMPLATE"
+  // institutions / participation-activity / complaint-resolve
+  | "SUBMIT_INSTITUTION_ACTIVITY"
+  | "REVIEW_INSTITUTION_ACTIVITY"
+  | "CREATE_PARTICIPATION_ACTIVITY"
+  | "COMPLETE_PARTICIPATION_ACTIVITY"
+  | "RESOLVE_COMPLAINT"
+  // handover
+  | "VIEW_HANDOVER"
+  | "CREATE_HANDOVER"
+  | "ACCEPT_HANDOVER"
+  | "REVIEW_HANDOVER"
+  // UC follow-up actions
+  | "VIEW_UC_FOLLOWUP"
+  | "UPDATE_UC_FOLLOWUP"
+  | "ESCALATE_UC_FOLLOWUP"
+  | "CLOSE_UC_FOLLOWUP"
+  // file flow / complaints / adoption / improvement
+  | "MANAGE_FILE_FLOW"
+  | "VIEW_FILE_FLOW"
+  | "REVIEW_FILE_FLOW"
+  | "SUBMIT_COMPLAINT"
+  | "ROUTE_COMPLAINT"
+  | "VIEW_ADOPTION"
+  | "MANAGE_ADOPTION"
+  | "MANAGE_PROCESS_IMPROVEMENT"
+  // system
+  | "VIEW_AUDIT_LOG"
+  | "EXPORT_DATA"
+  | "MANAGE_USERS";
+
+// Reusable capability bundles
+const PUBLIC: Capability[] = ["VIEW_PUBLIC_DATA", "SUBMIT_PARTICIPATION", "SUBMIT_COMPLAINT"];
+
+const GP_OPS_BASE: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_GP_OPERATIONS",
+  "REPORT_ASSET_CONDITION",
+  "SUBMIT_SEASONAL_CHECK",
+  "VIEW_SERVICE_AGGREGATES",
+  "SUBMIT_PARTICIPATION",
+  "SUBMIT_COMPLAINT",
+  "VIEW_FILE_FLOW",
+];
+
+const GRAM_SEVAK: Capability[] = [
+  ...GP_OPS_BASE,
+  "CREATE_OBLIGATION",
+  "ASSIGN_OBLIGATION",
+  "UPDATE_OWN_OBLIGATION",
+  "ESCALATE_OBLIGATION",
+  "CLOSE_OBLIGATION",
+  "CREATE_REPAIR_TICKET",
+  "ASSIGN_REPAIR",
+  "VERIFY_REPAIR",
+  "CLOSE_REPAIR",
+  "CREATE_SERVICE_ENTRY",
+  "UPDATE_SERVICE_ENTRY",
+  "CREATE_GRAMSABHA_FOLLOWUP",
+  "VERIFY_PARTICIPATION",
+  "SUBMIT_INNOVATION",
+  "MANAGE_FILE_FLOW",
+  "ROUTE_COMPLAINT",
+  "RESOLVE_COMPLAINT",
+  "MANAGE_PROCESS_IMPROVEMENT",
+  "CREATE_FROM_TEMPLATE",
+  "REVIEW_INSTITUTION_ACTIVITY",
+  "CREATE_PARTICIPATION_ACTIVITY",
+  "COMPLETE_PARTICIPATION_ACTIVITY",
+  "VIEW_HANDOVER",
+  "ACCEPT_HANDOVER",
+  "VIEW_UC_FOLLOWUP",
+  "UPDATE_UC_FOLLOWUP",
+  "EXPORT_DATA",
+];
+
+const JE: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_GP_OPERATIONS",
+  "VIEW_BLOCK_OPERATIONS",
+  "UPDATE_REPAIR",
+  "CLAIM_REPAIR_COMPLETE",
+  "REPORT_ASSET_CONDITION",
+];
+
+const REVIEWER_BLOCK: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_GP_OPERATIONS",
+  "VIEW_BLOCK_OPERATIONS",
+  "REVIEW_OBLIGATION",
+  "RETURN_OBLIGATION",
+  "VERIFY_OBLIGATION",
+  "ESCALATE_OBLIGATION",
+  "REVIEW_SEASONAL_CHECK",
+  "REVIEW_GRAMSABHA_FOLLOWUP",
+  "VERIFY_PARTICIPATION",
+  "REVIEW_INNOVATION",
+  "VERIFY_REPAIR",
+  "VIEW_FILE_FLOW",
+  "REVIEW_FILE_FLOW",
+  "ROUTE_COMPLAINT",
+  "RESOLVE_COMPLAINT",
+  "REVIEW_INSTITUTION_ACTIVITY",
+  "VIEW_ADOPTION",
+  "VIEW_AUDIT_LOG",
+  "EXPORT_DATA",
+  "VIEW_SERVICE_AGGREGATES",
+  "MANAGE_PROCESS_IMPROVEMENT",
+  "VIEW_HANDOVER",
+  "REVIEW_HANDOVER",
+  "VIEW_UC_FOLLOWUP",
+  "ESCALATE_UC_FOLLOWUP",
+];
+
+const BDO: Capability[] = [
+  ...REVIEWER_BLOCK,
+  "ASSIGN_OBLIGATION",
+  "ASSIGN_REPAIR",
+  "CREATE_INNOVATION_CHALLENGE",
+  "MANAGE_FILE_FLOW",
+  "MANAGE_ADOPTION",
+];
+
+const DISTRICT: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_GP_OPERATIONS",
+  "VIEW_BLOCK_OPERATIONS",
+  "VIEW_DISTRICT_OPERATIONS",
+  "REVIEW_OBLIGATION",
+  "ESCALATE_OBLIGATION",
+  "VIEW_SERVICE_AGGREGATES",
+  "VIEW_FILE_FLOW",
+  "VIEW_ADOPTION",
+  "MANAGE_ADOPTION",
+  "CREATE_INNOVATION_CHALLENGE",
+  "REVIEW_INNOVATION",
+  "VIEW_AUDIT_LOG",
+  "EXPORT_DATA",
+  "MANAGE_PROCESS_IMPROVEMENT",
+  "VIEW_HANDOVER",
+  "REVIEW_HANDOVER",
+  "VIEW_UC_FOLLOWUP",
+  "ESCALATE_UC_FOLLOWUP",
+];
+
+const STRATEGIC: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_GP_OPERATIONS",
+  "VIEW_BLOCK_OPERATIONS",
+  "VIEW_DISTRICT_OPERATIONS",
+  "VIEW_SERVICE_AGGREGATES",
+  "VIEW_FILE_FLOW",
+  "VIEW_ADOPTION",
+  "VIEW_AUDIT_LOG",
+  "VIEW_HANDOVER",
+  "VIEW_UC_FOLLOWUP",
+  "EXPORT_DATA",
+];
+
+const ELECTED_READ: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_GP_OPERATIONS",
+  "VIEW_BLOCK_OPERATIONS",
+  "EXPORT_DATA",
+];
+
+const ELECTED_DISTRICT_READ: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_DISTRICT_OPERATIONS",
+  "EXPORT_DATA",
+];
+
+const ADMIN: Capability[] = [
+  "VIEW_PUBLIC_DATA",
+  "VIEW_GP_OPERATIONS",
+  "VIEW_BLOCK_OPERATIONS",
+  "VIEW_DISTRICT_OPERATIONS",
+  "VIEW_AUDIT_LOG",
+  "MANAGE_USERS",
+  "EXPORT_DATA",
+  "VIEW_FILE_FLOW",
+  "VIEW_ADOPTION",
+  "VIEW_HANDOVER",
+  "VIEW_UC_FOLLOWUP",
+];
+
+export const ROLE_CAPABILITIES: Record<RoleId, Capability[]> = {
+  citizen: PUBLIC,
+  gram_sabha_member: ["VIEW_PUBLIC_DATA"],
+  volunteer: ["VIEW_PUBLIC_DATA", "SUBMIT_PARTICIPATION"],
+  shg_rep: ["VIEW_PUBLIC_DATA", "VIEW_GP_OPERATIONS", "SUBMIT_PARTICIPATION", "SUBMIT_INNOVATION", "SUBMIT_INSTITUTION_ACTIVITY"],
+  vwsc_member: ["VIEW_PUBLIC_DATA", "VIEW_GP_OPERATIONS", "REPORT_ASSET_CONDITION", "CREATE_REPAIR_TICKET", "SUBMIT_SEASONAL_CHECK", "SUBMIT_PARTICIPATION", "SUBMIT_COMPLAINT", "SUBMIT_INSTITUTION_ACTIVITY"],
+  gp_member: ["VIEW_PUBLIC_DATA", "VIEW_GP_OPERATIONS"],
+  up_sarpanch: ["VIEW_PUBLIC_DATA", "VIEW_GP_OPERATIONS", "REVIEW_OBLIGATION", "ESCALATE_OBLIGATION"],
+  sarpanch: ["VIEW_PUBLIC_DATA", "VIEW_GP_OPERATIONS", "REVIEW_OBLIGATION", "ESCALATE_OBLIGATION", "EXPORT_DATA", "REVIEW_GRAMSABHA_FOLLOWUP"],
+  gp_staff: [...GP_OPS_BASE, "CREATE_SERVICE_ENTRY", "UPDATE_SERVICE_ENTRY"],
+  gram_sevak: GRAM_SEVAK,
+  je: JE,
+  extension_officer: REVIEWER_BLOCK,
+  abdo: REVIEWER_BLOCK,
+  ps_member: ELECTED_READ,
+  up_sabhapati: ELECTED_READ,
+  sabhapati: ELECTED_READ,
+  bdo: BDO,
+  block_dept_officer: [...REVIEWER_BLOCK],
+  dyceo_panchayat: DISTRICT,
+  dyceo_dept_head: DISTRICT,
+  additional_ceo: DISTRICT,
+  zp_member: ELECTED_DISTRICT_READ,
+  zp_vice_president: ELECTED_DISTRICT_READ,
+  zp_president: ELECTED_DISTRICT_READ,
+  ceo: STRATEGIC,
+  sysadmin: ADMIN,
+};
+
+/**
+ * Central capability check. Optionally validates resource ownership/scope.
+ * can(user, "UPDATE_OWN_OBLIGATION", { gpId }) → also checks the GP matches.
+ */
+export function hasCapability(
+  user: User | null,
+  cap: Capability,
+  resource?: { gpId?: string; blockId?: string; districtId?: string }
+): boolean {
+  if (!user) return false;
+  const caps = ROLE_CAPABILITIES[user.role] ?? [];
+  if (!caps.includes(cap)) return false;
+
+  // "OWN" capabilities additionally require scope match
+  if (resource && cap === "UPDATE_OWN_OBLIGATION") {
+    return !resource.gpId || resource.gpId === user.gpId;
+  }
+  return true;
+}
+
+export const capabilitiesFor = (role: RoleId): Capability[] => ROLE_CAPABILITIES[role] ?? [];
